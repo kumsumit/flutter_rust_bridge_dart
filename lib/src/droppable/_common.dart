@@ -4,6 +4,9 @@ import 'package:flutter_rust_bridge/src/exceptions.dart';
 import 'package:flutter_rust_bridge/src/platform_types/platform_types.dart';
 import 'package:meta/meta.dart';
 
+// Public constructor parameter names intentionally assign to private fields.
+// ignore_for_file: prefer_initializing_formals
+
 /// Encapsulates the [internalResource] release logic.
 ///
 /// In Rust, it is simple to release some resource: Just implement `Drop` trait.
@@ -89,9 +92,10 @@ class DroppableStaticData {
 
   /// Constructs the data
   DroppableStaticData({
-    required this._releaseFn,
+    required void Function(PlatformPointer) releaseFn,
     required CrossPlatformFinalizerArg releaseFnPtr,
-  }) : _releaseFnPtr = releaseFnPtr;
+  }) : _releaseFn = releaseFn,
+       _releaseFnPtr = releaseFnPtr;
 }
 
 /// {@macro flutter_rust_bridge.internal}

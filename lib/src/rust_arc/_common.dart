@@ -1,6 +1,9 @@
 import 'package:flutter_rust_bridge/src/droppable/droppable.dart';
 import 'package:flutter_rust_bridge/src/platform_types/platform_types.dart';
 
+// Public constructor parameter names intentionally assign to private fields.
+// ignore_for_file: prefer_initializing_formals
+
 /// The Rust `std::sync::Arc` on the Dart side.
 // Note: Use `extends`, instead of making the `_Droppable` a field,
 // in order to ensure the `ffi.Finalizable` works well.
@@ -19,8 +22,9 @@ class RustArc<T> extends Droppable {
   RustArc.fromRaw({
     required int ptr,
     required super.externalSizeOnNative,
-    required this._staticData,
+    required RustArcStaticData<T> staticData,
   }) : assert(ptr != 0),
+       _staticData = staticData,
        super(ptr: PlatformPointerUtil.ptrFromInt(ptr));
 
   /// Mimic `std::sync::Arc::clone`
@@ -63,14 +67,15 @@ class RustArcStaticData<T> extends DroppableStaticData {
   /// Constructs the data
   RustArcStaticData({
     /// Directly calls `std::sync::Arc::increment_strong_count(ptr)`
-    required this._rustArcIncrementStrongCount,
+    required RustArcIncrementStrongCountFnType rustArcIncrementStrongCount,
 
     /// Directly calls `std::sync::Arc::decrement_strong_count(ptr)`
     required RustArcDecrementStrongCountFnType rustArcDecrementStrongCount,
 
     /// The function pointer to `rustArcDecrementStrongCount`
     required CrossPlatformFinalizerArg rustArcDecrementStrongCountPtr,
-  }) : super(
+  }) : _rustArcIncrementStrongCount = rustArcIncrementStrongCount,
+       super(
          releaseFn: rustArcDecrementStrongCount,
          releaseFnPtr: rustArcDecrementStrongCountPtr,
        );
